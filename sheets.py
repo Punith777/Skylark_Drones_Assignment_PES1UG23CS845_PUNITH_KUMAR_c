@@ -1,30 +1,39 @@
 import gspread
 import pandas as pd
+import streamlit as st
 from oauth2client.service_account import ServiceAccountCredentials
+
 
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    "credentials.json", scope
+# Load credentials from Streamlit secrets
+creds_dict = st.secrets["gcp_service_account"]
+
+creds = ServiceAccountCredentials.from_json_keyfile_dict(
+    creds_dict,
+    scope
 )
 
 client = gspread.authorize(creds)
 
-SPREADSHEET_NAME = "Skylark_Drone_Data"  # your sheet file name
+SPREADSHEET_NAME = "Skylark_Drone_Data"
+
 
 def get_sheet(sheet_name):
     spreadsheet = client.open(SPREADSHEET_NAME)
     return spreadsheet.worksheet(sheet_name)
+
 
 def read_sheet(sheet_name):
     sheet = get_sheet(sheet_name)
     data = sheet.get_all_records()
     return pd.DataFrame(data)
 
-# To update the data (assign pilot etc)
+
+# Update row value
 def update_row(sheet_name, row_index, col_name, value):
     sheet = get_sheet(sheet_name)
 
